@@ -3,12 +3,18 @@
 #include <Touch.h>
 #include <Matrix.h>
 #include <StateManager.h>
+#include <ServerManager.h>
+
+EspSettings settings = {"IDnet-10", "ArtS1975", 80, "myToken"};
 
 Clock _clock;
 Touch _touch;
 Matrix _matrix;
 StateManager _stateManager;
+ServerManager _serverManager(settings);
+
 State lastState = State::OFF;
+byte lastHour = 0, lastMinute = 0, lastDay = 0, lastMonth = 0, lastYear = 0;
 
 void printClock()
 {
@@ -38,12 +44,13 @@ void printClock()
 void stateChange(){
   if(_touch.isDouble()){
       _stateManager.nextState();
+      _matrix.clear();
       Serial.println("State changed to: " + String(static_cast<int>(_stateManager.getState())));
     }
 }
 
 void handleEffects() {
-  _matrix.update();
+  _matrix.playEffect();
   stateChange();
   if(_touch.isTouched()) {
     _matrix.nextEffect();
@@ -53,7 +60,19 @@ void handleEffects() {
 }
 
 void handleClock() {
-  printClock();
+  std::array<byte, 3> time = _clock.getTime();
+  std::array<byte, 3> date = _clock.getDate();
+  if(time[0] != lastHour || time[1] != lastMinute || date[2] != lastDay || date[1] != lastMonth || date[0] != lastYear) {
+    _matrix.clear();
+    delay(1);
+    lastHour = time[0];
+    lastMinute = time[1];
+    lastDay = date[2];
+    lastMonth = date[1];
+    lastYear = date[0];
+    _matrix.playClock(time[0], time[1], date[2], date[1], date[0]);
+    printClock();
+  } 
   stateChange();
 }
 
@@ -62,15 +81,16 @@ void handleOff() {
 }
 
 void setup() {
-  Serial.begin(115200);
-  delay(500); 
-  Serial.flush();
+  Serial.begin(9600);
   
   Serial.println("LED Matrix Project Initialized");
+
+  _serverManager.init();
 
   _touch.init();
   _clock.init();
   _matrix.init();
+  _matrix.clear();
   printClock();
 }
 
@@ -89,6 +109,11 @@ void loop() {
     if (currentState == State::OFF) {
       _matrix.clear();
     }
+    else if (currentState == State::CLOCK){
+      _matrix.clear();
+      delay(1);
+      _matrix.playClock(lastHour, lastMinute, lastDay, lastMonth, lastYear);
+    }
     lastState = currentState;
   }
 
@@ -100,4 +125,6 @@ void loop() {
     case State::OFF:
       break;
   }
+
+  _serverManager.update();
 }
