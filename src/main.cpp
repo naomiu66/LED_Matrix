@@ -5,7 +5,7 @@
 #include <StateManager.h>
 #include <ServerManager.h>
 
-EspSettings settings = {"IDnet-10", "ArtS1975", 80, "myToken"};
+EspSettings settings = {"", "", 80, "myToken"};
 
 Clock _clock;
 Touch _touch;
@@ -111,7 +111,6 @@ void loop() {
     }
     else if (currentState == State::CLOCK){
       _matrix.clear();
-      delay(1);
       _matrix.playClock(lastHour, lastMinute, lastDay, lastMonth, lastYear);
     }
     lastState = currentState;

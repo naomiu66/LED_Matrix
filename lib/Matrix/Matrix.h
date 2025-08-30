@@ -1,7 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#define FASTLED_ALLOW_INTERRUPTS 0
+// #define FASTLED_ALLOW_INTERRUPTS 0
+// #define FASTLED_INTERRUPT_RETRY_COUNT 0
 
 #include <Arduino.h>
 #include <FastLED.h>

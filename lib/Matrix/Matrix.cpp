@@ -3,6 +3,7 @@
 void Matrix::init() {
     FastLED.addLeds<WS2811, MATRIX_PIN, GRB>(leds, MATRIX_SIZE);
     FastLED.setBrightness(BRIGHTNESS);
+    FastLED.delay(1000/120);
     FastLED.clearData();
     FastLED.show();
 
