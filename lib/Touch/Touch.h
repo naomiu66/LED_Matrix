@@ -47,7 +47,6 @@ public:
 
     void update();
 
-
     void resetStates();
 private:
     static constexpr uint8_t TOUCH_PIN = D5;

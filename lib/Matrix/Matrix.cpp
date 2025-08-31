@@ -2,16 +2,15 @@
 
 void Matrix::init() {
     FastLED.addLeds<WS2811, MATRIX_PIN, GRB>(leds, MATRIX_SIZE);
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, POWER_LIMIT);
     FastLED.setBrightness(BRIGHTNESS);
-    FastLED.delay(1000/120);
     FastLED.clearData();
     FastLED.show();
 
-    effects[0] = &water;
-    effects[1] = &sinelon;
-    effects[2] = &confetti;
-    effects[3] = &fire;
-    effectsCount = 4;
+    effects[0] = &confetti;
+    effects[1] = &fire;
+    effects[2] = &snow;
+    effectsCount = 3;
     currentEffect = 0;
 
     for (int i = 0; i < effectsCount; i++) {
@@ -20,8 +19,38 @@ void Matrix::init() {
     Serial.println("Matrix initialized with WS2811 chipset on pin " + String(MATRIX_PIN));
 }
 
+void Matrix::update(StateManager &stateManager, Clock& clock)
+{
+    State currentState = stateManager.getState();
+    bool stateChanged = currentState != lastState;
+    bool effectChanged = stateManager.isEffectChanged();
+    if(stateChanged) lastState = currentState;
+    std::array<byte, 3> time = clock.getTime();
+
+    switch(currentState){
+        case State::EFFECTS: 
+            if(effectChanged){
+                nextEffect();
+                stateManager.setEffectChanged(false);
+            }
+            playEffect(); 
+            break;
+        case State::CLOCK: 
+            if(clock.isTimeChanged() || stateChanged) {
+
+                playClock(time[0], time[1]);
+            }
+            break;
+        case State::OFF: 
+            if(stateChanged){
+                off();
+            }
+            break;
+    }
+}
+
 void Matrix::drawPixel(int x, int y, CRGB color) {
-    if(x < 0 || x > MATRIX_WIDTH || y < 0 || y > MATRIX_HEIGHT){
+    if(x < 0 || x >= MATRIX_WIDTH || y < 0 || y >= MATRIX_HEIGHT){
         Serial.println("Error: Pixel coordinates out of bounds.");
         return;
     }
@@ -38,6 +67,11 @@ void Matrix::drawPixel(int x, int y, CRGB color) {
 }
 
 void Matrix::clear(){
+    FastLED.clearData();
+}
+
+void Matrix::off()
+{
     FastLED.clearData();
     FastLED.show();
 }
@@ -84,7 +118,8 @@ void Matrix::playEffect(){
     FastLED.show();
 }
 
-void Matrix::playClock(byte hour, byte minute, byte day, byte month, byte year) {
+void Matrix::playClock(byte hour, byte minute) {
+    clear();
     int hour1 = hour / 10;
     int hour2 = hour % 10;
 

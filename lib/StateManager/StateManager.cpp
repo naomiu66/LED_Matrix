@@ -6,12 +6,9 @@ State StateManager::getState() {
 
 void StateManager::nextState() {
     switch (state) {
-        case State::EFFECTS:
-            state = State::CLOCK;
-            break;
-        case State::CLOCK:
-            state = State::EFFECTS;
-            break;
+        case State::EFFECTS: state = State::CLOCK; break;
+        case State::CLOCK: state = State::EFFECTS; break;
+        case State::OFF: break;
     }
 }
 

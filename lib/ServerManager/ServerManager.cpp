@@ -2,6 +2,16 @@
 
 void ServerManager::init() {
     Serial.println("Connecting to WiFi: " + _settings.ssid);
+    int n = WiFi.scanNetworks();
+    Serial.println("Available Networks: ");
+    for(int i = 0; i < n; i++)
+    {
+        Serial.println(WiFi.SSID(i));
+        Serial.print(" (");
+        Serial.print(WiFi.RSSI(i));
+        Serial.println(" dBm)");
+    }
+    
     WiFi.mode(WIFI_STA);
     WiFi.begin(_settings.ssid.c_str(), _settings.pass.c_str());
 
@@ -12,7 +22,8 @@ void ServerManager::init() {
     });
 
     _disconnectedHandler = WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &event){
-        Serial.println("Wifi disconnected");
+        Serial.print("Wifi disconnected, status code: ");
+        Serial.println(WiFi.status());
     });
 }
 

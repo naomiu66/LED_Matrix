@@ -9,12 +9,15 @@ class Clock
 {
 public:
     void init();
+    bool isTimeChanged();
     std::array<byte, 3> getTime();
     std::array<byte, 3> getDate();
     byte getDOW();
 
 private:
-    DS3231* rtc = nullptr; // Create an instance of the DS3231 class
+    byte lastHour = 0, lastMinute = 0, lastDay = 0, lastMonth = 0, lastYear = 0;
+    DS3231 rtc; // Create an instance of the DS3231 class
+
     void setTime(byte hour, byte minute, byte second);
     void setDate(byte year, byte month, byte day);
     void setDOW(byte dow);

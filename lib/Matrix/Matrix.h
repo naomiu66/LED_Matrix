@@ -1,22 +1,22 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-// #define FASTLED_ALLOW_INTERRUPTS 0
-// #define FASTLED_INTERRUPT_RETRY_COUNT 0
+#define FASTLED_ALLOW_INTERRUPTS 0
+#define FASTLED_INTERRUPT_RETRY_COUNT 0
 
 #include <Arduino.h>
 #include <FastLED.h>
+#include <StateManager.h>
+#include <Clock.h>
 #include <EffectBase.h>
-#include <EffectWater/EffectWater.h>
-#include <EffectSinelon/EffectSinelon.h>
 #include <EffectConfetti/EffectConfetti.h>
 #include <EffectFire/EffectFire.h>
+#include <EffectSnow/EffectSnow.h>
 
 enum class EffectType {
-    WATER,
-    SINELON,
     CONFETTI,
-    FIRE
+    FIRE,
+    SNOW
 }; 
 
 class Matrix{
@@ -24,8 +24,10 @@ public:
     using EffectFunc = void (Matrix::*)();
 
     void init();
+    void update(StateManager& stateManager, Clock& clock);
     void drawPixel(int x, int y, CRGB color);
     void clear();
+    void off();
     void setBrightness(int brightness);
 
     void nextEffect() {
@@ -34,7 +36,7 @@ public:
 
     void playEffect();
 
-    void playClock(byte hour, byte minute, byte day, byte month, byte year);
+    void playClock(byte hour, byte minute);
 
     EffectType getCurrentEffect() const {
         return static_cast<EffectType>(currentEffect);
@@ -42,10 +44,9 @@ public:
 
     const char* getEffectName() const {
     switch (getCurrentEffect()) {
-        case EffectType::WATER: return "Water";
-        case EffectType::SINELON: return "Sinelon";
         case EffectType::CONFETTI: return "Confetti";
         case EffectType::FIRE: return "Fire";
+        case EffectType::SNOW: return "Snow";
         default: return "Unknown";
     }
 }
@@ -81,15 +82,16 @@ private:
     static constexpr int COLON_Y = 6;
     static constexpr int MIN1_X = 9;
     static constexpr int MIN2_X = 13;
-    int BRIGHTNESS = 255;
+    static constexpr int POWER_LIMIT = 2000; // MILLIAMPS
+    int BRIGHTNESS = 40;
     CRGB leds[MATRIX_SIZE];
+    State lastState = State::OFF;
 
     EffectConfetti confetti;
     EffectFire fire;
-    EffectSinelon sinelon;
-    EffectWater water;
+    EffectSnow snow;
 
-    EffectBase* effects[4];  // базовый интерфейс
+    EffectBase* effects[3];  // базовый интерфейс
     uint8_t effectsCount;
     uint8_t currentEffect;
 
